@@ -1,11 +1,11 @@
 # load library
 library(tidyverse)
-library(Biobase)
+library(SummarizedExperiment)
 library(cowplot)
 
 # load data
 genetic <- read_rds('data/genetic_perturbation.rds')
-pd <- as_tibble(pData(genetic))
+pd <- as_tibble(colData(genetic))
 
 p1 <- pd %>%
     filter(grepl('expression|down', treatment)) %>%
@@ -21,10 +21,10 @@ p1 <- pd %>%
     geom_tile(aes(x = time, y = treatment_target, fill = series_id, width = 48), alpha = .2) +
     geom_vline(xintercept = c(0, 48, 144), color = 'gray', alpha = .5) +
     geom_segment(aes(x = min, xend = max, y = treatment_target, yend = treatment_target), size = 2.2, color = 'gray', alpha = .3) +
-    geom_point(aes(x = time, y = treatment_target, shape = treatment), color = 'black') +
+    geom_point(aes(x = time, y = treatment_target, shape = treatment), color = 'black', fill = 'black') +
     geom_label(aes(x = -80, y = treatment_target, label = treatment_target), hjust = 1, label.size = NA) +
     scale_x_continuous(position = 'top',
-                       limits = c(-150, 340),
+                       limits = c(-180, 340),
                        breaks = seq(-2, 14, 2) * 24,
                        sec.axis = sec_axis(~.,
                                            breaks = c(-2, .5, 4, 10) * 24,
@@ -46,10 +46,11 @@ p1 <- pd %>%
 
 pharma <- read_rds('data/pharmacological_perturbation.rds')
 
-pd_pharma <- as_tibble(pData(pharma))
+pd_pharma <- as_tibble(colData(pharma))
 
 p2 <- pd_pharma %>%
     filter(grepl('drug', treatment)) %>%
+    filter(treatment_target != 'none') %>%
     group_by(treatment_target, treatment) %>%
     mutate(time = as.numeric(time),
            min = min(time),
